@@ -89,32 +89,34 @@ Installing these libraries into Proteus takes less than two minutes.
 
 ### Step 1: Locate your Proteus Directories
 
-The exact destination folders depend on your Proteus version and Windows edition:
+Check the following locations in order of priority:
 
-#### For Proteus 8.x (8.0 through 8.16+):
-- **Library Directory:**
-  ```text
-  C:\ProgramData\Labcenter Electronics\Proteus 8 Professional\LIBRARY
-  ```
-- **Models Directory:**
-  ```text
-  C:\ProgramData\Labcenter Electronics\Proteus 8 Professional\MODELS
-  ```
+#### 1. Primary Location: `Program Files (x86)` (Most Common)
+On 64-bit Windows, Proteus is a 32-bit application and is usually installed in `C:\Program Files (x86)\Labcenter Electronics`:
 
-> 💡 **Note on ProgramData:**
-> `C:\ProgramData` is hidden by default in Windows. To access it quickly:
-> 1. Press <kbd>Win</kbd> + <kbd>R</kbd> on your keyboard.
-> 2. Paste `C:\ProgramData\Labcenter Electronics\Proteus 8 Professional` and hit **Enter**.
+- **Proteus 8.x (with `DATA` subfolder):**
+  - **Library:** `C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\DATA\LIBRARY`
+  - **Models:** `C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\DATA\MODELS`
 
-#### For Proteus 7.x:
-- **Library Directory:**
-  ```text
-  C:\Program Files (x86)\Labcenter Electronics\Proteus 7 Professional\LIBRARY
-  ```
-- **Models Directory:**
-  ```text
-  C:\Program Files (x86)\Labcenter Electronics\Proteus 7 Professional\MODELS
-  ```
+- **Proteus 8.x (Direct root layout):**
+  - **Library:** `C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\LIBRARY`
+  - **Models:** `C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\MODELS`
+
+- **Proteus 7.x:**
+  - **Library:** `C:\Program Files (x86)\Labcenter Electronics\Proteus 7 Professional\LIBRARY`
+  - **Models:** `C:\Program Files (x86)\Labcenter Electronics\Proteus 7 Professional\MODELS`
+
+#### 2. Fallback Option: `ProgramData` (If not found in Program Files (x86))
+Certain Proteus 8 installers split executable binaries into `Program Files (x86)` and simulation data into Windows `ProgramData`:
+- **Library:** `C:\ProgramData\Labcenter Electronics\Proteus 8 Professional\LIBRARY`
+- **Models:** `C:\ProgramData\Labcenter Electronics\Proteus 8 Professional\MODELS`
+
+> 💡 **Note on ProgramData:** `C:\ProgramData` is hidden by default in Windows Explorer. To open it, press <kbd>Win</kbd> + <kbd>R</kbd>, paste `C:\ProgramData\Labcenter Electronics\Proteus 8 Professional`, and hit **Enter**.
+
+#### 3. Alternative 64-bit Location: `Program Files`
+If installed on a 32-bit Windows edition or custom 64-bit path:
+- **Library:** `C:\Program Files\Labcenter Electronics\Proteus 8 Professional\DATA\LIBRARY` (or `...\LIBRARY`)
+- **Models:** `C:\Program Files\Labcenter Electronics\Proteus 8 Professional\DATA\MODELS` (or `...\MODELS`)
 
 ---
 
@@ -123,11 +125,11 @@ The exact destination folders depend on your Proteus version and Windows edition
 1. **Copy Library Files (`L/`):**
    - Open folder `L/` in this repository.
    - Select all files (`*.LIB` and `*.IDX` — 32 files total).
-   - Copy and paste them into the Proteus **`LIBRARY`** folder.
+   - Paste them into your Proteus **`LIBRARY`** folder.
 2. **Copy Model Files (`m/`):**
    - Open folder `m/` in this repository.
    - Select all three files (`GPSMODULE.dll`, `OLED.DLL`, `WIFI.dll`).
-   - Copy and paste them into the Proteus **`MODELS`** folder.
+   - Paste them into your Proteus **`MODELS`** folder.
 
 ---
 
@@ -136,26 +138,37 @@ The exact destination folders depend on your Proteus version and Windows edition
 #### Option A: Run `install.bat` (Recommended)
 1. Right-click [`install.bat`](file:///c:/Users/Dev%20Dan%20Almag/OneDrive/Documents/drive/ALL/install.bat) in this folder.
 2. Select **"Run as administrator"**.
-3. The installer detects your Proteus 8 or 7 installation and copies all `.LIB`, `.IDX`, and `.DLL` files to their respective destination directories automatically.
+3. The script automatically:
+   - **First checks** `C:\Program Files (x86)\Labcenter Electronics\` (detecting both `DATA\LIBRARY` and direct `LIBRARY` layouts).
+   - **Then falls back** to `C:\ProgramData\Labcenter Electronics\` if not found in `Program Files (x86)`.
+   - **Finally checks** `C:\Program Files\Labcenter Electronics\`.
+   - Copies all 32 library files and 3 simulation DLLs with full verification.
 
 #### Option B: PowerShell
-If you prefer running a command in PowerShell (Administrator):
-1. Right-click the **Start menu** and select **Terminal (Admin)** or **PowerShell (Administrator)**.
-2. Change directory to this folder:
-   ```powershell
-   cd "C:\path\to\this\repository"
-   ```
-3. Run the automated copy script:
-   ```powershell
-   $proteusDir = "C:\ProgramData\Labcenter Electronics\Proteus 8 Professional"
-   if (Test-Path $proteusDir) {
-       Copy-Item -Path ".\L\*" -Destination "$proteusDir\LIBRARY\" -Force -Verbose
-       Copy-Item -Path ".\m\*" -Destination "$proteusDir\MODELS\" -Force -Verbose
-       Write-Host "`n✅ Successfully installed Proteus Library and Model files!" -ForegroundColor Green
-   } else {
-       Write-Host "`n❌ Proteus 8 directory not found. Please verify your installation path." -ForegroundColor Red
-   }
-   ```
+If you prefer running a command in PowerShell (Administrator), run this script which checks all potential locations in order:
+
+```powershell
+# Candidate installation paths in priority order
+$candidates = @(
+    @{ Lib = "$env:ProgramFiles(x86)\Labcenter Electronics\Proteus 8 Professional\DATA\LIBRARY"; Mod = "$env:ProgramFiles(x86)\Labcenter Electronics\Proteus 8 Professional\DATA\MODELS" },
+    @{ Lib = "$env:ProgramFiles(x86)\Labcenter Electronics\Proteus 8 Professional\LIBRARY"; Mod = "$env:ProgramFiles(x86)\Labcenter Electronics\Proteus 8 Professional\MODELS" },
+    @{ Lib = "$env:ProgramFiles(x86)\Labcenter Electronics\Proteus 7 Professional\LIBRARY"; Mod = "$env:ProgramFiles(x86)\Labcenter Electronics\Proteus 7 Professional\MODELS" },
+    @{ Lib = "$env:ProgramData\Labcenter Electronics\Proteus 8 Professional\LIBRARY"; Mod = "$env:ProgramData\Labcenter Electronics\Proteus 8 Professional\MODELS" },
+    @{ Lib = "$env:ProgramFiles\Labcenter Electronics\Proteus 8 Professional\DATA\LIBRARY"; Mod = "$env:ProgramFiles\Labcenter Electronics\Proteus 8 Professional\DATA\MODELS" },
+    @{ Lib = "$env:ProgramFiles\Labcenter Electronics\Proteus 8 Professional\LIBRARY"; Mod = "$env:ProgramFiles\Labcenter Electronics\Proteus 8 Professional\MODELS" }
+)
+
+$target = $candidates | Where-Object { Test-Path $_.Lib } | Select-Object -First 1
+
+if ($target) {
+    Write-Host "Found Proteus at: $($target.Lib)" -ForegroundColor Cyan
+    Copy-Item -Path ".\L\*" -Destination "$($target.Lib)\" -Force -Verbose
+    Copy-Item -Path ".\m\*" -Destination "$($target.Mod)\" -Force -Verbose
+    Write-Host "`n✅ Successfully installed Proteus Library and Model files!" -ForegroundColor Green
+} else {
+    Write-Host "`n❌ Proteus library directory not detected automatically. Please check your path manually." -ForegroundColor Red
+}
+```
 
 ---
 
@@ -183,9 +196,10 @@ If you prefer running a command in PowerShell (Administrator):
 - **Fix:** Ensure both `FILENAME.LIB` and `FILENAME.IDX` were copied into the `LIBRARY` directory. Restart Proteus.
 
 ### Q2: Simulation error: "Cannot find model `GPSMODULE.dll`", "`WIFI.dll`", or "`OLED.DLL`".
-- **Cause:** The VSM dynamic link library files were not placed into the `MODELS` folder.
+- **Cause:** The VSM dynamic link library files were not placed into the active Proteus `MODELS` folder.
 - **Fix:** Copy `GPSMODULE.dll`, `OLED.DLL`, and `WIFI.dll` from the `m/` directory directly into:
-  `C:\ProgramData\Labcenter Electronics\Proteus 8 Professional\MODELS\`
+  - `C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\DATA\MODELS\` (or `...\MODELS\`)
+  - Or `C:\ProgramData\Labcenter Electronics\Proteus 8 Professional\MODELS\` (if using ProgramData)
 
 ### Q3: "Access Denied" or "Administrator Permission Required" when copying.
 - **Cause:** `C:\ProgramData` and `C:\Program Files (x86)` are system-protected directories.
